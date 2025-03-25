@@ -1,9 +1,9 @@
 'use client'
 
-import { useTranslation } from 'react-i18next'
-import { useAppContext } from '@/context/app-context'
-import { Beaker02 } from '@/app/components/base/icons/src/vender/solid/education'
-import { TerminalSquare } from '@/app/components/base/icons/src/vender/solid/development'
+import {useTranslation} from 'react-i18next'
+import {useAppContext} from '@/context/app-context'
+import {Beaker02} from '@/app/components/base/icons/src/vender/solid/education'
+import {TerminalSquare} from '@/app/components/base/icons/src/vender/solid/development'
 
 const headerEnvClassName: { [k: string]: string } = {
   DEVELOPMENT: 'bg-[#FEC84B] border-[#FDB022] text-[#93370D]',
@@ -11,9 +11,11 @@ const headerEnvClassName: { [k: string]: string } = {
 }
 
 const EnvNav = () => {
-  const { t } = useTranslation()
-  const { langeniusVersionInfo } = useAppContext()
-  const showEnvTag = langeniusVersionInfo.current_env === 'TESTING' || langeniusVersionInfo.current_env === 'DEVELOPMENT'
+  const {t} = useTranslation()
+  const {langeniusVersionInfo} = useAppContext()
+  let showEnvTag = langeniusVersionInfo.current_env === 'TESTING' || langeniusVersionInfo.current_env === 'DEVELOPMENT'
+  //这里自己修改showEnvTag为false,不需要输出环境标签
+  showEnvTag = false
 
   if (!showEnvTag)
     return null
@@ -26,7 +28,7 @@ const EnvNav = () => {
       {
         langeniusVersionInfo.current_env === 'TESTING' && (
           <>
-            <Beaker02 className='w-3 h-3 mr-1' />
+            <Beaker02 className='w-3 h-3 mr-1'/>
             {t('common.environment.testing')}
           </>
         )
@@ -34,7 +36,7 @@ const EnvNav = () => {
       {
         langeniusVersionInfo.current_env === 'DEVELOPMENT' && (
           <>
-            <TerminalSquare className='w-3 h-3 mr-1' />
+            <TerminalSquare className='w-3 h-3 mr-1'/>
             {t('common.environment.development')}
           </>
         )

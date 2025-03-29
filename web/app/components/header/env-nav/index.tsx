@@ -13,7 +13,9 @@ const headerEnvClassName: { [k: string]: string } = {
 const EnvNav = () => {
   const { t } = useTranslation()
   const { langeniusVersionInfo } = useAppContext()
-  const showEnvTag = langeniusVersionInfo.current_env === 'TESTING' || langeniusVersionInfo.current_env === 'DEVELOPMENT'
+  let showEnvTag = langeniusVersionInfo.current_env === 'TESTING' || langeniusVersionInfo.current_env === 'DEVELOPMENT'
+  // 这里自己修改showEnvTag为false,不需要输出环境标签
+  showEnvTag = false
 
   if (!showEnvTag)
     return null

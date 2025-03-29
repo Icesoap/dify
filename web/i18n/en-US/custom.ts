@@ -6,7 +6,8 @@ const translation = {
   },
   webapp: {
     title: 'Customize WebApp brand',
-    removeBrand: 'Remove Powered by Dify',
+    // removeBrand: 'Remove Powered by Dify',
+    removeBrand: 'Remove Sensnow',
     changeLogo: 'Change Powered by Brand Image',
     changeLogoTip: 'SVG or PNG format with a minimum size of 40x40px',
   },

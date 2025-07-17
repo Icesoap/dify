@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 
+// 这个页面没写完
+
 const AppCategoryManager = () => {
   // 模拟初始分类数据
   const initialCategories = [

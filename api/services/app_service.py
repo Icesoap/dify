@@ -96,8 +96,8 @@ class AppService:
 
             if model_instance:
                 if (
-                    model_instance.model == default_model_config["model"]["name"]
-                    and model_instance.provider == default_model_config["model"]["provider"]
+                        model_instance.model == default_model_config["model"]["name"]
+                        and model_instance.provider == default_model_config["model"]["provider"]
                 ):
                     default_model_dict = default_model_config["model"]
                 else:
@@ -132,6 +132,8 @@ class AppService:
         app.tenant_id = tenant_id
         app.api_rph = args.get("api_rph", 0)
         app.api_rpm = args.get("api_rpm", 0)
+        # 自己添加的字段 应用分类
+        app.app_category_id = args.get("app_category_id")
         app.created_by = account.id
         app.updated_by = account.id
 

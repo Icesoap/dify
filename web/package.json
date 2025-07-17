@@ -5,11 +5,11 @@
   "engines": {
     "node": ">=18.17.0"
   },
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cross-env PORT=$npm_config_port HOSTNAME=$npm_config_host node .next/standalone/server.js",
+    "?start": "cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cross-env PORT=3010 HOSTNAME=$npm_config_host node .next/standalone/server.js",
+    "start": "xcopy  .next\\static .next\\standalone\\.next\\static /S /I /E /Y && xcopy  public .next\\standalone\\public /S /I /E /Y && cross-env PORT=3010 HOSTNAME=$npm_config_host node .next\\standalone\\server.js",
     "lint": "next lint",
     "fix": "next lint --fix",
     "eslint-fix": "eslint --fix",
@@ -89,6 +89,7 @@
     "react-multi-email": "^1.0.14",
     "react-papaparse": "^4.1.0",
     "react-pdf-highlighter": "^8.0.0-rc.0",
+    "react-select": "^5.10.2",
     "react-slider": "^2.0.4",
     "react-sortablejs": "^6.1.4",
     "react-syntax-highlighter": "^15.5.0",

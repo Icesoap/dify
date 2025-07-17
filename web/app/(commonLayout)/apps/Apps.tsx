@@ -84,8 +84,9 @@ const Apps = () => {
     { value: 'workflow', text: t('app.types.workflow'), icon: <RiExchange2Line className='w-[14px] h-[14px] mr-1' /> },
   ]
 
+  // TODO 自定义修改 title 核心位置
   useEffect(() => {
-    document.title = `${t('common.menus.apps')} -  Dify`
+    document.title = `${t('common.menus.apps')} -  Sensnow`
     if (localStorage.getItem(NEED_REFRESH_APP_LIST_KEY) === '1') {
       localStorage.removeItem(NEED_REFRESH_APP_LIST_KEY)
       mutate()
@@ -129,6 +130,7 @@ const Apps = () => {
   return (
     <>
       <div className='sticky top-0 flex justify-between items-center pt-4 px-12 pb-2 leading-[56px] bg-background-body z-10 flex-wrap gap-y-2'>
+        {/*<span>我的测试</span>*/}
         <TabSliderNew
           value={activeTab}
           onChange={setActiveTab}

@@ -61,11 +61,11 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * - favicon_bak.ico (favicon file)
      */
     {
-      // source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-      source: '/((?!_next/static|_next/image|favicon.ico).*)',
+      // source: '/((?!api|_next/static|_next/image|favicon_bak.ico).*)',
+      source: '/((?!_next/static|_next/image|favicon_bak.ico).*)',
       // source: '/(.*)',
       // missing: [
       //   { type: 'header', key: 'next-router-prefetch' },

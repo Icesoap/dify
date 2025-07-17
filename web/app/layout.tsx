@@ -8,7 +8,9 @@ import './styles/globals.css'
 import './styles/markdown.scss'
 
 export const metadata = {
-  title: 'Dify',
+  // title: 'Dify',
+  // 自己修改
+  title: 'Sensnow',
 }
 
 export const viewport: Viewport = {

@@ -31,8 +31,10 @@ const Layout = ({ children }: { children: ReactNode }) => {
   )
 }
 
+// TODO 自定义修改title-默认位置
 export const metadata = {
-  title: 'Dify',
+  // title: 'Dify',
+  title: 'Sensnow',
 }
 
 export default Layout

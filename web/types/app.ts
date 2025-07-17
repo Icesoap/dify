@@ -358,6 +358,18 @@ export type AppSSO = {
 }
 
 /**
+ * 应用分类--自己添加的类型
+ */
+export type AppCategory = {
+  id: string
+  name: string
+  created_at: Date
+  created_by: string
+  updated_at: Date
+  updated_by: string
+}
+
+/**
  * App Template
  */
 export type AppTemplate = {

@@ -25,7 +25,7 @@ const translation = {
   importFromDSLUrlPlaceholder: '输入 DSL 文件的 URL',
   deleteAppConfirmTitle: '确认删除应用?',
   deleteAppConfirmContent:
-    '删除应用将无法撤销。用户将不能访问你的应用，所有 Prompt 编排配置和日志均将一并被删除。',
+        '删除应用将无法撤销。用户将不能访问你的应用，所有 Prompt 编排配置和日志均将一并被删除。',
   appDeleted: '应用已删除',
   appDeleteFailed: '应用删除失败',
   join: '参与社区',
@@ -34,7 +34,9 @@ const translation = {
   newApp: {
     learnMore: '了解更多',
     startFromBlank: '创建空白应用',
+    appCategoryManage: '管理应用分类',
     startFromTemplate: '从应用模版创建',
+    titleAppCategoryManage: '应用分类管理',
     captionAppType: '想要哪种应用类型？',
     foundResult: '{{count}} 个结果',
     foundResults: '{{count}} 个结果',
@@ -59,6 +61,8 @@ const translation = {
     noIdeaTip: '没有想法？试试我们的模板',
     captionName: '应用名称 & 图标',
     appNamePlaceholder: '给你的应用起个名字',
+    category: '应用分类',
+    selectPlaceholderAppCategory: '选择应用分类',
     optional: '可选',
     captionDescription: '描述',
     appDescriptionPlaceholder: '输入应用的描述',
@@ -66,11 +70,11 @@ const translation = {
     previewDemo: '预览 Demo',
     chatApp: '助手',
     chatAppIntro:
-      '我要构建一个聊天场景的应用。该应用采用一问一答模式与用户持续对话。',
+            '我要构建一个聊天场景的应用。该应用采用一问一答模式与用户持续对话。',
     agentAssistant: '新的智能助手',
     completeApp: '文本生成应用',
     completeAppIntro:
-      '我要构建一个根据提示生成高质量文本的应用，例如生成文章、摘要、翻译等',
+            '我要构建一个根据提示生成高质量文本的应用，例如生成文章、摘要、翻译等',
     showTemplates: '我想从范例模板中选择',
     hideTemplates: '返回应用类型选择',
     Create: '创建',

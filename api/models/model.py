@@ -87,6 +87,8 @@ class App(db.Model):  # type: ignore[name-defined]
     is_universal = db.Column(db.Boolean, nullable=False, server_default=db.text("false"))
     tracing = db.Column(db.Text, nullable=True)
     max_active_requests: Mapped[Optional[int]] = mapped_column(nullable=True)
+    # 自己添加的字段 应用分类
+    app_category_id = db.Column(StringUUID, nullable=True)
     created_by = db.Column(StringUUID, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
@@ -142,7 +144,7 @@ class App(db.Model):  # type: ignore[name-defined]
         if not app_model_config.agent_mode:
             return False
         if self.app_model_config.agent_mode_dict.get("enabled", False) and self.app_model_config.agent_mode_dict.get(
-            "strategy", ""
+                "strategy", ""
         ) in {"function_call", "react"}:
             self.mode = AppMode.AGENT_CHAT.value
             db.session.commit()
@@ -217,6 +219,23 @@ class App(db.Model):  # type: ignore[name-defined]
         )
 
         return tags or []
+
+
+class AppCategory(db.Model):  # type: ignore[name-defined]
+    """
+    自己添加的类 应用分类
+    """
+    __tablename__ = "app_category"
+    __table_args__ = (db.PrimaryKeyConstraint("id", name="app_category_pkey"), db.Index("app_category_name_uq"))
+
+    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    name = db.Column(db.String(100), nullable=False)
+    created_by = db.Column(StringUUID, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=True, server_default=func.current_timestamp())
+    # created_at = db.Column(db.DateTime, nullable=True, server_default=func.now())
+    # created_at = db.Column(db.DateTime, nullable=True, server_default=text('CURRENT_TIMESTAMP'))
+    updated_by = db.Column(StringUUID, nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
 
 
 class AppModelConfig(db.Model):  # type: ignore[name-defined]
@@ -577,7 +596,7 @@ class Conversation(db.Model):  # type: ignore[name-defined]
                     value["upload_file_id"] = value["related_id"]
                 inputs[key] = file_factory.build_from_mapping(mapping=value, tenant_id=value["tenant_id"])
             elif isinstance(value, list) and all(
-                isinstance(item, dict) and item.get("dify_model_identity") == FILE_MODEL_IDENTITY for item in value
+                    isinstance(item, dict) and item.get("dify_model_identity") == FILE_MODEL_IDENTITY for item in value
             ):
                 inputs[key] = []
                 for item in value:
@@ -816,7 +835,7 @@ class Message(db.Model):  # type: ignore[name-defined]
                     value["upload_file_id"] = value["related_id"]
                 inputs[key] = file_factory.build_from_mapping(mapping=value, tenant_id=value["tenant_id"])
             elif isinstance(value, list) and all(
-                isinstance(item, dict) and item.get("dify_model_identity") == FILE_MODEL_IDENTITY for item in value
+                    isinstance(item, dict) and item.get("dify_model_identity") == FILE_MODEL_IDENTITY for item in value
             ):
                 inputs[key] = []
                 for item in value:
@@ -1145,16 +1164,16 @@ class MessageFile(db.Model):  # type: ignore[name-defined]
     )
 
     def __init__(
-        self,
-        *,
-        message_id: str,
-        type: FileType,
-        transfer_method: FileTransferMethod,
-        url: str | None = None,
-        belongs_to: Literal["user", "assistant"] | None = None,
-        upload_file_id: str | None = None,
-        created_by_role: CreatedByRole,
-        created_by: str,
+            self,
+            *,
+            message_id: str,
+            type: FileType,
+            transfer_method: FileTransferMethod,
+            url: str | None = None,
+            belongs_to: Literal["user", "assistant"] | None = None,
+            upload_file_id: str | None = None,
+            created_by_role: CreatedByRole,
+            created_by: str,
     ):
         self.message_id = message_id
         self.type = type
@@ -1441,23 +1460,23 @@ class UploadFile(db.Model):  # type: ignore[name-defined]
     source_url: Mapped[str] = mapped_column(sa.TEXT, default="")
 
     def __init__(
-        self,
-        *,
-        tenant_id: str,
-        storage_type: str,
-        key: str,
-        name: str,
-        size: int,
-        extension: str,
-        mime_type: str,
-        created_by_role: CreatedByRole,
-        created_by: str,
-        created_at: datetime,
-        used: bool,
-        used_by: str | None = None,
-        used_at: datetime | None = None,
-        hash: str | None = None,
-        source_url: str = "",
+            self,
+            *,
+            tenant_id: str,
+            storage_type: str,
+            key: str,
+            name: str,
+            size: int,
+            extension: str,
+            mime_type: str,
+            created_by_role: CreatedByRole,
+            created_by: str,
+            created_at: datetime,
+            used: bool,
+            used_by: str | None = None,
+            used_at: datetime | None = None,
+            hash: str | None = None,
+            source_url: str = "",
     ):
         self.tenant_id = tenant_id
         self.storage_type = storage_type

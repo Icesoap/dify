@@ -1,5 +1,5 @@
 import type { LangFuseConfig, LangSmithConfig, OpikConfig, TracingProvider } from '@/app/(commonLayout)/app/(appDetailLayout)/[appId]/overview/tracing/type'
-import type { App, AppSSO, AppTemplate, SiteConfig } from '@/types/app'
+import type { App, AppCategory, AppSSO, AppTemplate, SiteConfig } from '@/types/app'
 
 /* export type App = {
   id: string
@@ -90,6 +90,10 @@ export type DSLImportResponse = {
 }
 
 export type AppSSOResponse = { enabled: AppSSO['enable_sso'] }
+
+export type AppCategoryResponse = {
+  data: AppCategory[]
+}
 
 export type AppTemplatesResponse = {
   data: AppTemplate[]

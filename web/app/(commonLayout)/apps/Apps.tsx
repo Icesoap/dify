@@ -70,6 +70,7 @@ const Apps = () => {
     setQuery(prev => ({ ...prev, tagIDs }))
   }, [setQuery])
 
+  // 加载更多方式分页
   const { data, isLoading, setSize, mutate } = useSWRInfinite(
     (pageIndex: number, previousPageData: AppListResponse) => getKey(pageIndex, previousPageData, activeTab, isCreatedByMe, tagIDs, searchKeywords),
     fetchAppList,

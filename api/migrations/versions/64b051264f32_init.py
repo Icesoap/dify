@@ -112,6 +112,19 @@ def upgrade():
     with op.batch_alter_table('app_model_configs', schema=None) as batch_op:
         batch_op.create_index('app_app_id_idx', ['app_id'], unique=False)
 
+    #自己添加的表 应用分类
+    op.create_table('app_category',
+                    sa.Column('id', postgresql.UUID(), nullable=False, server_default=sa.text('uuid_generate_v4()')),
+                    sa.Column('name', sa.String(length=100), nullable=False),
+                    sa.Column('created_by', postgresql.UUID(), nullable=True),
+                    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP(0)'), nullable=False),
+                    sa.Column('updated_by', postgresql.UUID(), nullable=True),
+                    sa.Column('updated_at', sa.DateTime(), nullable=True),
+                    sa.PrimaryKeyConstraint('id', name='app_category_pkey')
+                    )
+    with op.batch_alter_table('app_category', schema=None) as batch_op:
+        batch_op.create_index('app_category_name_uq', ['name'], unique=True)
+
     op.create_table('apps',
     sa.Column('id', postgresql.UUID(), server_default=sa.text('uuid_generate_v4()'), nullable=False),
     sa.Column('tenant_id', postgresql.UUID(), nullable=False),
@@ -127,6 +140,7 @@ def upgrade():
     sa.Column('api_rph', sa.Integer(), nullable=False),
     sa.Column('is_demo', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.Column('is_public', sa.Boolean(), server_default=sa.text('false'), nullable=False),
+    sa.Column('app_category_id', postgresql.UUID(), nullable=True,comment= '自己添加的类别,对应app_category表的id'),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP(0)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP(0)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name='app_pkey')

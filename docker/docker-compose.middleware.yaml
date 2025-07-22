@@ -26,6 +26,7 @@ services:
 #      retries: 30
 #
 #  # The redis cache.
+  # 升级1.6.0 本地用到
   redis:
     image: redis:6-alpine
     restart: always
@@ -69,6 +70,7 @@ services:
     networks:
       - ssrf_proxy_network
 
+  # 升级1.6.0 用到
   # plugin daemon
   plugin_daemon:
     image: langgenius/dify-plugin-daemon:0.1.3-local
@@ -84,8 +86,8 @@ services:
 #      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
       DB_PASSWORD: ${DB_PASSWORD:-123}
       DB_DATABASE: ${DB_PLUGIN_DATABASE:-dify_160}
-#      REDIS_HOST: ${REDIS_HOST:-redis}
-      REDIS_HOST: ${REDIS_HOST:-192.168.110.201}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+#      REDIS_HOST: ${REDIS_HOST:-192.168.110.201}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-123}
       SERVER_PORT: ${PLUGIN_DAEMON_PORT:-5002}
@@ -139,6 +141,7 @@ services:
   # ssrf_proxy server
   # for more information, please refer to
   # https://docs.dify.ai/learn-more/faq/install-faq#18-why-is-ssrf-proxy-needed%3F
+  # 这个服务暂时没用到
   ssrf_proxy:
     image: ubuntu/squid:latest
     restart: always

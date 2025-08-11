@@ -30,6 +30,7 @@ export default function MailAndPasswordAuth({ isInvite, isEmailSetup, allowRegis
 
   const [isLoading, setIsLoading] = useState(false)
 
+  // -------------------------杨工写的自动登录功能-------------------------
   const autoLogin = async (email: string, password: string) => {
     const loginData: Record<string, any> = {
       email,
@@ -57,6 +58,7 @@ export default function MailAndPasswordAuth({ isInvite, isEmailSetup, allowRegis
     const password = decodeURIComponent(searchParams.get('password') || '')
     autoLogin(email, password)
   }, [autoLogin])
+  // -------------------------杨工写的自动登录功能-------------------------
 
   const handleEmailPasswordLogin = async () => {
     if (!email) {

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useContext } from 'use-context-selector'
@@ -30,6 +30,35 @@ export default function MailAndPasswordAuth({ isInvite, isEmailSetup, allowRegis
   const [password, setPassword] = useState('')
 
   const [isLoading, setIsLoading] = useState(false)
+
+  const autoLogin = async (email: string, password: string) => {
+    const loginData: Record<string, any> = {
+      email,
+      password,
+      language: locale,
+      remember_me: true,
+    }
+    if (email !== '' && password !== '') {
+      const res = await login({
+        url: '/login',
+        body: loginData,
+      })
+      if (res.data) {
+        if (res.result === 'success') {
+          localStorage.setItem('console_token', res.data.access_token)
+          localStorage.setItem('refresh_token', res.data.refresh_token)
+          router.replace('/apps')
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    const email = decodeURIComponent(searchParams.get('email') || '')
+    const password = decodeURIComponent(searchParams.get('password') || '')
+    autoLogin(email, password)
+  }, [autoLogin])
+
   const handleEmailPasswordLogin = async () => {
     if (!email) {
       Toast.notify({ type: 'error', message: t('login.error.emailEmpty') })

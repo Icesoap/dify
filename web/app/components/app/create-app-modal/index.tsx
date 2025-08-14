@@ -56,6 +56,13 @@ function CreateApp({ onClose, onSuccess, onCreateFromTemplate }: CreateAppProps)
 
   const isCreatingRef = useRef(false)
 
+  // 应用分类的Select
+  const [options, setOptions] = useState<{ value: string; label: string }[]>([])
+  // const [options, setOptions] = useState([])
+  // const [selectedOption, setSelectedOption] = useState(null)
+  const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null)
+  const [isFetched, setIsFetched] = useState(false)
+
   const onCreate = useCallback(async () => {
     // console.log(`onclick-selected-option:${selectedOption}`)
     if (!appMode) {
@@ -161,13 +168,6 @@ function CreateApp({ onClose, onSuccess, onCreateFromTemplate }: CreateAppProps)
   //   { value: 'vanilla', label: 'Vanilla' },
   // ]
 
-  // 应用分类的Select
-  const [options, setOptions] = useState<{ value: string; label: string }[]>([])
-  // const [options, setOptions] = useState([])
-  // const [selectedOption, setSelectedOption] = useState(null)
-  const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null)
-  const [isFetched, setIsFetched] = useState(false)
-
   useEffect(() => {
     // 这个判断是为了防止重复,但是这里好像是  react 18的新特新,在dev模式下 会自动调用两遍
     if (!isFetched) {
@@ -188,7 +188,10 @@ function CreateApp({ onClose, onSuccess, onCreateFromTemplate }: CreateAppProps)
 
           // 数据加载后设置默认值 这里没起作用
           setSelectedOption(
-            formattedOptions[0].value,
+            {
+              value: formattedOptions[0].value,
+              label: formattedOptions[0].label,
+            },
           )
         }
         catch (error) {
@@ -314,7 +317,8 @@ function CreateApp({ onClose, onSuccess, onCreateFromTemplate }: CreateAppProps)
                   // 设置默认值
                   // defaultValue={options[0]}
                   // value={selectedOption}
-                  style={{ height: '20px' }}
+                  // style={{ height: '5px' }}
+                  // class="h-1/2"
                   defaultValue={selectedOption}
                   onChange={setSelectedOption}
                   options={options}

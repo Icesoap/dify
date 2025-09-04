@@ -18,10 +18,14 @@
     "and_qq >= 14.9"
   ],
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
+   "?predev": "rimraf .next && rimraf ./node_modules/.pnpm && pnpm add next",
+    "dev": "next dev",
+    "prebuild": "rimraf .next && rimraf ./node_modules/.pnpm && pnpm add next",
+    "?prebuild": "rimraf .next && rimraf ./node_modules/next  && pnpm add next",
+    "?prebuild": "rimraf .next &&  pnpm add next",
     "build": "next build",
     "?start": "cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cross-env PORT=3010 HOSTNAME=$npm_config_host node .next/standalone/server.js",
-    "start": "xcopy  .next\\static .next\\standalone\\.next\\static /S /I /E /Y && xcopy  public .next\\standalone\\public /S /I /E /Y && cross-env PORT=3010 HOSTNAME=$npm_config_host node .next\\standalone\\server.js",
+    "start": "xcopy  .next\\static .next\\standalone\\.next\\static /S /I /E /Y && xcopy  public .next\\standalone\\public /S /I /E /Y && cross-env PORT=3021 HOSTNAME=$npm_config_host node .next\\standalone\\server.js",
     "lint": "pnpx oxlint && pnpm eslint --cache --cache-location node_modules/.cache/eslint/.eslint-cache",
     "lint-only-show-error": "pnpx oxlint && pnpm eslint --cache --cache-location node_modules/.cache/eslint/.eslint-cache --quiet",
     "fix": "next lint --fix",

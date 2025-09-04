@@ -229,7 +229,7 @@ class AppCategory(db.Model):  # type: ignore[name-defined]
     __table_args__ = (db.PrimaryKeyConstraint("id", name="app_category_pkey"), db.Index("app_category_name_uq"))
 
     id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
     created_by = db.Column(StringUUID, nullable=False)
     created_at = db.Column(db.DateTime, nullable=True, server_default=func.current_timestamp())
     # created_at = db.Column(db.DateTime, nullable=True, server_default=func.now())

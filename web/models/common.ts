@@ -4,6 +4,12 @@ export type CommonResponse = {
   result: 'success' | 'fail'
 }
 
+export type CommonResponseCustom = {
+  code: number
+  msg: string
+  data: any
+}
+
 export type OauthResponse = {
   redirect_url: string
 }

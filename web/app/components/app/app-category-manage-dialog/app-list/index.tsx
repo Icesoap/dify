@@ -7,11 +7,9 @@ import { useContext } from 'use-context-selector'
 import useSWR from 'swr'
 import { useDebounceFn } from 'ahooks'
 import { RiRobot2Line } from '@remixicon/react'
-import AppCard from '../app-card'
-import Sidebar, { AppCategories, AppCategoryLabel } from './sidebar'
+import { AppCategories } from './sidebar'
 import Toast from '@/app/components/base/toast'
 import Divider from '@/app/components/base/divider'
-import cn from '@/utils/classnames'
 import ExploreContext from '@/context/explore-context'
 import type { App } from '@/models/explore'
 import { fetchAppDetail, fetchAppList } from '@/service/explore'
@@ -27,6 +25,9 @@ import { getRedirection } from '@/utils/app-redirection'
 import Input from '@/app/components/base/input'
 import type { AppMode } from '@/types/app'
 import { DSLImportMode } from '@/models/app'
+// 自己添加的
+import ProTaleDemo from '@/app/components/app/app-category-manage-dialog/app-list/category-list'
+// 自己添加的
 
 type AppsProps = {
   onSuccess?: () => void
@@ -188,41 +189,44 @@ const Apps = ({
       </div>
       {/* -------------------------------头部------------------------------- */}
 
-      {/* -------------------------------下面部分------------------------------- */}
+      {/* -------------------------------下面部分 begin------------------------------- */}
       <div className='relative flex flex-1 overflow-y-auto'>
         {/* -------------------------------左侧推荐部分------------------------------- */}
-        {!searchKeywords && <div className='w-[200px] h-full p-4'>
-          <Sidebar current={currCategory as AppCategories} onClick={(category) => { setCurrCategory(category) }} onCreateFromBlank={onCreateFromBlank} />
-        </div>}
+        {/* {!searchKeywords && <div className='w-[200px] h-full p-4'> */}
+        {/*  <Sidebar current={currCategory as AppCategories} onClick={(category) => { setCurrCategory(category) }} onCreateFromBlank={onCreateFromBlank} /> */}
+        {/* </div>} */}
         {/* -------------------------------左侧推荐部分------------------------------- */}
+        {/* -------------------------------右侧部分------------------------------- */}
         <div className='flex-1 h-full overflow-auto shrink-0 grow p-6 pt-2 border-l border-divider-burn'>
-          {searchFilteredList && searchFilteredList.length > 0 && <>
-            <div className='pt-4 pb-1'>
-              {searchKeywords
-                ? <p className='title-md-semi-bold text-text-tertiary'>{searchFilteredList.length > 1 ? t('app.newApp.foundResults', { count: searchFilteredList.length }) : t('app.newApp.foundResult', { count: searchFilteredList.length })}</p>
-                : <AppCategoryLabel category={currCategory as AppCategories} className='title-md-semi-bold text-text-primary' />}
-            </div>
-            <div
-              className={cn(
-                'grid content-start shrink-0 gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5 2k:grid-cols-6',
-              )}>
-              {searchFilteredList.map(app => (
-                <AppCard
-                  key={app.app_id}
-                  app={app}
-                  canCreate={hasEditPermission}
-                  onCreate={() => {
-                    setCurrApp(app)
-                    setIsShowCreateModal(true)
-                  }}
-                />
-              ))}
-            </div>
-          </>}
-          {(!searchFilteredList || searchFilteredList.length === 0) && <NoTemplateFound />}
+          <ProTaleDemo key="ProTaleDemo"></ProTaleDemo>
+          {/* {searchFilteredList && searchFilteredList.length > 0 && <> */}
+          {/*  <div className='pt-4 pb-1'> */}
+          {/*    {searchKeywords */}
+          {/*      ? <p className='title-md-semi-bold text-text-tertiary'>{searchFilteredList.length > 1 ? t('app.newApp.foundResults', { count: searchFilteredList.length }) : t('app.newApp.foundResult', { count: searchFilteredList.length })}</p> */}
+          {/*      : <AppCategoryLabel category={currCategory as AppCategories} className='title-md-semi-bold text-text-primary' />} */}
+          {/*  </div> */}
+          {/*  <div */}
+          {/*    className={cn( */}
+          {/*      'grid content-start shrink-0 gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5 2k:grid-cols-6', */}
+          {/*    )}> */}
+          {/*    {searchFilteredList.map(app => ( */}
+          {/*      <AppCard */}
+          {/*        key={app.app_id} */}
+          {/*        app={app} */}
+          {/*        canCreate={hasEditPermission} */}
+          {/*        onCreate={() => { */}
+          {/*          setCurrApp(app) */}
+          {/*          setIsShowCreateModal(true) */}
+          {/*        }} */}
+          {/*      /> */}
+          {/*    ))} */}
+          {/*  </div> */}
+          {/* </>} */}
+          {/* {(!searchFilteredList || searchFilteredList.length === 0) && <NoTemplateFound />} */}
         </div>
+        {/* -------------------------------右侧部分------------------------------- */}
       </div>
-      {/* -------------------------------下面部分------------------------------- */}
+      {/* -------------------------------下面部分end------------------------------- */}
       {isShowCreateModal && (
         <CreateAppModal
           appIconType={currApp?.app.icon_type || 'emoji'}

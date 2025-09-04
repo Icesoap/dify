@@ -13,3 +13,11 @@ app_category_fields = {
 }
 
 
+app_category_pagination_fields = {
+    "page": fields.Integer,
+    "limit": fields.Integer(attribute="per_page"),
+    "total": fields.Integer,
+    "has_more": fields.Boolean(attribute="has_next"),
+    "data": fields.List(fields.Nested(app_category_fields), attribute="items"),
+}
+

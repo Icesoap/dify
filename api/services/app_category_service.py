@@ -4,7 +4,9 @@ from datetime import UTC, datetime
 from typing import Optional, cast
 
 from flask_login import current_user  # type: ignore
+from flask_restful import marshal
 from flask_sqlalchemy.pagination import Pagination
+from sqlalchemy import update, delete
 
 from configs import dify_config
 from constants.model_template import default_app_templates
@@ -18,6 +20,7 @@ from core.tools.tool_manager import ToolManager
 from core.tools.utils.configuration import ToolParameterConfigurationManager
 from events.app_event import app_was_created
 from extensions.ext_database import db
+from fields.app_category_fields import app_category_fields
 from models.account import Account
 from models.model import App, AppMode, AppModelConfig, AppCategory
 from models.tools import ApiToolProvider
@@ -35,45 +38,82 @@ class AppCategoryService:
         entity_list = db.session.query(AppCategory).all()
         return entity_list
 
-    def get_paginate_apps(self, user_id: str, tenant_id: str, args: dict) -> Pagination | None:
+    def get_app_category_list_page(self, args: dict) -> Pagination | None:
         """
-        Get app list with pagination
-        :param user_id: user id
-        :param tenant_id: tenant id
-        :param args: request args
-        :return:
+        param: args
         """
-        filters = [App.tenant_id == tenant_id, App.is_universal == False]
+        filters = []
+        name = args["name"]
 
-        if args["mode"] == "workflow":
-            filters.append(App.mode.in_([AppMode.WORKFLOW.value, AppMode.COMPLETION.value]))
-        elif args["mode"] == "chat":
-            filters.append(App.mode.in_([AppMode.CHAT.value, AppMode.ADVANCED_CHAT.value]))
-        elif args["mode"] == "agent-chat":
-            filters.append(App.mode == AppMode.AGENT_CHAT.value)
-        elif args["mode"] == "channel":
-            filters.append(App.mode == AppMode.CHANNEL.value)
-
-        if args.get("is_created_by_me", False):
-            filters.append(App.created_by == user_id)
-        if args.get("name"):
-            name = args["name"][:30]
-            filters.append(App.name.ilike(f"%{name}%"))
-        if args.get("tag_ids"):
-            target_ids = TagService.get_target_ids_by_tag_ids("app", tenant_id, args["tag_ids"])
-            if target_ids:
-                filters.append(App.id.in_(target_ids))
-            else:
-                return None
+        if name and len(name) > 0:
+            filters.append(AppCategory.name.ilike(f"%{name}%"))
 
         app_models = db.paginate(
-            db.select(App).where(*filters).order_by(App.created_at.desc()),
+            db.select(AppCategory).where(*filters).order_by(AppCategory.created_at.desc()),
             page=args["page"],
             per_page=args["limit"],
             error_out=False,
         )
 
         return app_models
+
+    def create_app_category(self, args: dict) -> AppCategory:
+        """
+        添加应用分类
+        """
+        if args is None or args["category_name"] is None:
+            raise ValueError("Category name is required")
+
+        category_name = args["category_name"]
+        app_category = AppCategory()
+        app_category.name = category_name
+        db.session.add(app_category)
+        db.session.commit()
+        db.session.refresh(app_category)
+        return app_category
+
+    def update_app_category(self, entity: AppCategory) -> AppCategory:
+        """
+        修改应用分类
+        """
+        if entity is None or entity.name is None:
+            raise ValueError("Category name is required")
+
+        # id = args["id"]
+        # category_name = args["categoryName"]
+
+        update_data = {"name": entity.name}
+        try:
+            category_result = marshal(entity, app_category_fields)
+            # 使用ORM更新方式
+            stmt = (
+                update(AppCategory)
+                .where(AppCategory.id == entity.id)
+                # .values(**update_data)
+                .values(**category_result)
+            )
+            result = db.session.execute(stmt)
+            db.session.commit()
+            return result
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    def del_app_category(self, id: str):
+        """
+        删除应用分类
+        """
+        try:
+            stmt = (
+                delete(AppCategory)
+                .where(AppCategory.id == id)
+            )
+            result = db.session.execute(stmt)
+            db.session.commit()
+            return result
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def create_app(self, tenant_id: str, args: dict, account: Account) -> App:
         """

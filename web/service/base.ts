@@ -354,6 +354,8 @@ const baseFetch = <T>(
 
   if (body && bodyStringify)
     options.body = JSON.stringify(body)
+    // debugger
+    // console.log(`自定义输出body:${body}`)
 
   // Handle timeout
   return Promise.race([

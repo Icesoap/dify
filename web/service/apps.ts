@@ -55,8 +55,14 @@ export const fetchAppCategoryList: Fetcher<AppCategoryResponse, { url: string }>
 }
 
 export const createApp: Fetcher<AppDetailResponse, {
-  name: string; icon_type?: AppIconType; icon?: string; icon_background?: string
-  mode: AppMode; description?: string; config?: ModelConfig, app_category_id?: string
+  name: string
+  icon_type?: AppIconType
+  icon?: string
+  icon_background?: string
+  mode: AppMode
+  description?: string
+  config?: ModelConfig
+  app_category_id?: string
 }>
     = ({
       name, icon_type, icon, icon_background,

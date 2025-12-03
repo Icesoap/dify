@@ -129,6 +129,7 @@ class CodeExecutionSandboxConfig(BaseSettings):
     CODE_MAX_STRING_LENGTH: PositiveInt = Field(
         description="Maximum allowed length for strings in code execution",
         default=80000,
+        # default=500000,
     )
 
     CODE_MAX_STRING_ARRAY_LENGTH: PositiveInt = Field(
@@ -140,6 +141,7 @@ class CodeExecutionSandboxConfig(BaseSettings):
         description="Maximum allowed length for object arrays in code execution",
         default=30,
     )
+
 
     CODE_MAX_NUMBER_ARRAY_LENGTH: PositiveInt = Field(
         description="Maximum allowed length for numeric arrays in code execution",

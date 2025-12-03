@@ -9,7 +9,6 @@ import { emailRegex } from '@/config'
 import { login } from '@/service/common'
 import Input from '@/app/components/base/input'
 import I18NContext from '@/context/i18n'
-import { noop } from 'lodash-es'
 
 type MailAndPasswordAuthProps = {
   isInvite: boolean
@@ -19,7 +18,7 @@ type MailAndPasswordAuthProps = {
 
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/
 
-export default function MailAndPasswordAuth({ isInvite, isEmailSetup, allowRegistration }: MailAndPasswordAuthProps) {
+export default function MailAndPasswordAuth_bakOldVersion({ isInvite, isEmailSetup, allowRegistration }: MailAndPasswordAuthProps) {
   const { t } = useTranslation()
   const { locale } = useContext(I18NContext)
   const router = useRouter()
@@ -135,7 +134,7 @@ export default function MailAndPasswordAuth({ isInvite, isEmailSetup, allowRegis
     }
   }
 
-  return <form onSubmit={noop}>
+  return <form onSubmit={() => { }}>
     <div className='mb-3'>
       <label htmlFor="email" className="system-md-semibold my-2 text-text-secondary">
         {t('login.email')}

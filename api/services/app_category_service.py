@@ -1,13 +1,15 @@
 import json
 import logging
+from datetime import UTC, datetime
 from typing import Optional, cast
 
-from flask_login import current_user
+from flask_login import current_user  # type: ignore
 from flask_sqlalchemy.pagination import Pagination
 
 from configs import dify_config
 from constants.model_template import default_app_templates
 from core.agent.entities import AgentToolEntity
+from core.app.features.rate_limiting import RateLimit
 from core.errors.error import LLMBadRequestError, ProviderTokenNotInitError
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelPropertyKey, ModelType
@@ -16,17 +18,23 @@ from core.tools.tool_manager import ToolManager
 from core.tools.utils.configuration import ToolParameterConfigurationManager
 from events.app_event import app_was_created
 from extensions.ext_database import db
-from libs.datetime_utils import naive_utc_now
 from models.account import Account
-from models.model import App, AppMode, AppModelConfig, Site
+from models.model import App, AppCategory, AppMode, AppModelConfig
 from models.tools import ApiToolProvider
-from services.enterprise.enterprise_service import EnterpriseService
-from services.feature_service import FeatureService
 from services.tag_service import TagService
 from tasks.remove_app_and_related_data_task import remove_app_and_related_data_task
 
 
-class AppService:
+class AppCategoryService:
+    """
+    自己制作的类,用来操作应用分类
+    """
+
+    def get_app_category_list(self) -> list[AppCategory]:
+
+        entity_list = db.session.query(AppCategory).all()
+        return entity_list
+
     def get_paginate_apps(self, user_id: str, tenant_id: str, args: dict) -> Pagination | None:
         """
         Get app list with pagination
@@ -38,15 +46,13 @@ class AppService:
         filters = [App.tenant_id == tenant_id, App.is_universal == False]
 
         if args["mode"] == "workflow":
-            filters.append(App.mode == AppMode.WORKFLOW.value)
-        elif args["mode"] == "completion":
-            filters.append(App.mode == AppMode.COMPLETION.value)
+            filters.append(App.mode.in_([AppMode.WORKFLOW.value, AppMode.COMPLETION.value]))
         elif args["mode"] == "chat":
-            filters.append(App.mode == AppMode.CHAT.value)
-        elif args["mode"] == "advanced-chat":
-            filters.append(App.mode == AppMode.ADVANCED_CHAT.value)
+            filters.append(App.mode.in_([AppMode.CHAT.value, AppMode.ADVANCED_CHAT.value]))
         elif args["mode"] == "agent-chat":
             filters.append(App.mode == AppMode.AGENT_CHAT.value)
+        elif args["mode"] == "channel":
+            filters.append(App.mode == AppMode.CHANNEL.value)
 
         if args.get("is_created_by_me", False):
             filters.append(App.created_by == user_id)
@@ -99,8 +105,8 @@ class AppService:
 
             if model_instance:
                 if (
-                    model_instance.model == default_model_config["model"]["name"]
-                    and model_instance.provider == default_model_config["model"]["provider"]
+                        model_instance.model == default_model_config["model"]["name"]
+                        and model_instance.provider == default_model_config["model"]["provider"]
                 ):
                     default_model_dict = default_model_config["model"]
                 else:
@@ -135,8 +141,6 @@ class AppService:
         app.tenant_id = tenant_id
         app.api_rph = args.get("api_rph", 0)
         app.api_rpm = args.get("api_rpm", 0)
-        # 自己添加的字段 应用分类
-        app.app_category_id = args.get("app_category_id")
         app.created_by = account.id
         app.updated_by = account.id
 
@@ -156,10 +160,6 @@ class AppService:
         db.session.commit()
 
         app_was_created.send(app, account=account)
-
-        if FeatureService.get_system_features().webapp_auth.enabled:
-            # update web app setting as private
-            EnterpriseService.WebAppAuth.update_app_access_mode(app.id, "private")
 
         return app
 
@@ -231,15 +231,18 @@ class AppService:
         """
         app.name = args.get("name")
         app.description = args.get("description", "")
+        app.max_active_requests = args.get("max_active_requests")
         app.icon_type = args.get("icon_type", "emoji")
         app.icon = args.get("icon")
         app.icon_background = args.get("icon_background")
         app.use_icon_as_answer_icon = args.get("use_icon_as_answer_icon", False)
-        app.max_active_requests = args.get("max_active_requests")
         app.updated_by = current_user.id
-        app.updated_at = naive_utc_now()
+        app.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
+        if app.max_active_requests is not None:
+            rate_limit = RateLimit(app.id, app.max_active_requests)
+            rate_limit.flush_cache(use_local_value=True)
         return app
 
     def update_app_name(self, app: App, name: str) -> App:
@@ -251,7 +254,7 @@ class AppService:
         """
         app.name = name
         app.updated_by = current_user.id
-        app.updated_at = naive_utc_now()
+        app.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return app
@@ -267,7 +270,7 @@ class AppService:
         app.icon = icon
         app.icon_background = icon_background
         app.updated_by = current_user.id
-        app.updated_at = naive_utc_now()
+        app.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return app
@@ -284,7 +287,7 @@ class AppService:
 
         app.enable_site = enable_site
         app.updated_by = current_user.id
-        app.updated_at = naive_utc_now()
+        app.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return app
@@ -301,7 +304,7 @@ class AppService:
 
         app.enable_api = enable_api
         app.updated_by = current_user.id
-        app.updated_at = naive_utc_now()
+        app.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return app
@@ -313,10 +316,6 @@ class AppService:
         """
         db.session.delete(app)
         db.session.commit()
-
-        # clean up web app settings
-        if FeatureService.get_system_features().webapp_auth.enabled:
-            EnterpriseService.WebAppAuth.cleanup_webapp(app.id)
 
         # Trigger asynchronous deletion of app and related data
         remove_app_and_related_data_task.delay(tenant_id=app.tenant_id, app_id=app.id)
@@ -384,27 +383,3 @@ class AppService:
                         meta["tool_icons"][tool_name] = {"background": "#252525", "content": "\ud83d\ude01"}
 
         return meta
-
-    @staticmethod
-    def get_app_code_by_id(app_id: str) -> str:
-        """
-        Get app code by app id
-        :param app_id: app id
-        :return: app code
-        """
-        site = db.session.query(Site).filter(Site.app_id == app_id).first()
-        if not site:
-            raise ValueError(f"App with id {app_id} not found")
-        return str(site.code)
-
-    @staticmethod
-    def get_app_id_by_code(app_code: str) -> str:
-        """
-        Get app id by app code
-        :param app_code: app code
-        :return: app id
-        """
-        site = db.session.query(Site).filter(Site.code == app_code).first()
-        if not site:
-            raise ValueError(f"App with code {app_code} not found")
-        return str(site.app_id)

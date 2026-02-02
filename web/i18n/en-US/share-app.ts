@@ -49,6 +49,7 @@ const translation = {
       startCreateContent: 'Start create content',
     },
     title: 'AI Completion',
+    // title: 'Sensnow',
     queryTitle: 'Query content',
     completionResult: 'Completion result',
     queryPlaceholder: 'Write your query content...',

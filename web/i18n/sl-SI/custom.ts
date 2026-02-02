@@ -8,7 +8,8 @@ const translation = {
   },
   webapp: {
     title: 'Prilagodi blagovno znamko spletne aplikacije',
-    removeBrand: 'Odstrani Powered by Dify',
+    // removeBrand: 'Odstrani Powered by Dify',
+    removeBrand: 'Odstrani Sensnow',
     changeLogo: 'Spremeni sliko Powered by Brand',
     changeLogoTip: 'Format SVG ali PNG z minimalno velikostjo 40x40px',
   },

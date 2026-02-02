@@ -8,7 +8,8 @@ const translation = {
   },
   webapp: {
     title: 'Personalizar marca de web app',
-    removeBrand: 'Eliminar Powered by Dify',
+    // removeBrand: 'Eliminar Powered by Dify',
+    removeBrand: 'Eliminar Sensnow',
     changeLogo: 'Cambiar Imagen de Marca Powered by',
     changeLogoTip: 'Formato SVG o PNG con un tamaño mínimo de 40x40px',
   },

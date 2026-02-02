@@ -45,12 +45,14 @@ api.add_resource(AppImportCheckDependenciesApi, "/apps/imports/<string:app_id>/c
 # Import other controllers
 from . import admin, apikey, extension, feature, ping, setup, version
 
+# 新增的蓝图需要在这里注册一下 不知为何
 # Import app controllers
 from .app import (
     advanced_prompt_template,
     agent,
     annotation,
     app,
+    app_category,
     audio,
     completion,
     conversation,

@@ -94,6 +94,8 @@ class App(Base):
     is_universal = db.Column(db.Boolean, nullable=False, server_default=db.text("false"))
     tracing = db.Column(db.Text, nullable=True)
     max_active_requests: Mapped[Optional[int]] = mapped_column(nullable=True)
+    # 自己添加的字段 应用分类
+    app_category_id = db.Column(StringUUID, nullable=True)
     created_by = db.Column(StringUUID, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
@@ -300,8 +302,21 @@ class App(Base):
             if account:
                 return account.name
 
-        return None
+class AppCategory(db.Model):  # type: ignore[name-defined]
+    """
+    自己添加的类 应用分类
+    """
+    __tablename__ = "app_category"
+    __table_args__ = (db.PrimaryKeyConstraint("id", name="app_category_pkey"), db.Index("app_category_name_uq"))
 
+    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    name = db.Column(db.String(100), nullable=False)
+    created_by = db.Column(StringUUID, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=True, server_default=func.current_timestamp())
+    # created_at = db.Column(db.DateTime, nullable=True, server_default=func.now())
+    # created_at = db.Column(db.DateTime, nullable=True, server_default=text('CURRENT_TIMESTAMP'))
+    updated_by = db.Column(StringUUID, nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
 
 class AppModelConfig(Base):
     __tablename__ = "app_model_configs"

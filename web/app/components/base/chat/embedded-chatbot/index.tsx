@@ -43,7 +43,7 @@ const Chatbot = () => {
     themeBuilder?.buildTheme(site?.chat_color_theme, site?.chat_color_theme_inverted)
   }, [site, customConfig, themeBuilder])
 
-  useDocumentTitle(site?.title || 'Chat')
+  useDocumentTitle(`${site.title} - Sensnow` || 'Chat')
 
   return (
     <div className='relative'>

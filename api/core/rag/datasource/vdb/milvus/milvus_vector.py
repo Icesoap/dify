@@ -95,16 +95,56 @@ class MilvusVector(BaseVector):
         """
         return VectorType.MILVUS
 
-    def create(self, texts: list[Document], embeddings: list[list[float]], **kwargs):
+    # def create(self, texts: list[Document], embeddings: list[list[float]], **kwargs):
+    #     """
+    #     Create a collection and add texts with embeddings.
+    #     """
+    #     index_params = {"metric_type": "IP", "index_type": "HNSW", "params": {"M": 8, "efConstruction": 64}}
+    #     metadatas = [d.metadata if d.metadata is not None else {} for d in texts]
+    #     self.create_collection(embeddings, metadatas, index_params)
+    #     self.add_texts(texts, embeddings)
+
+    # yhj修改for deep-search 20260202
+    def create(self, texts: list[Document], embeddings: list[list[float]], reference: str = None, **kwargs):
         """
         Create a collection and add texts with embeddings.
         """
         index_params = {"metric_type": "IP", "index_type": "HNSW", "params": {"M": 8, "efConstruction": 64}}
         metadatas = [d.metadata if d.metadata is not None else {} for d in texts]
         self.create_collection(embeddings, metadatas, index_params)
-        self.add_texts(texts, embeddings)
+        self.add_texts(texts, embeddings, reference)
 
-    def add_texts(self, documents: list[Document], embeddings: list[list[float]], **kwargs):
+    # def add_texts(self, documents: list[Document], embeddings: list[list[float]], **kwargs):
+    #     """
+    #     Add texts and their embeddings to the collection.
+    #     """
+    #     insert_dict_list = []
+    #     for i in range(len(documents)):
+    #         insert_dict = {
+    #             # Do not need to insert the sparse_vector field separately, as the text_bm25_emb
+    #             # function will automatically convert the native text into a sparse vector for us.
+    #             Field.CONTENT_KEY.value: documents[i].page_content,
+    #             Field.VECTOR.value: embeddings[i],
+    #             Field.METADATA_KEY.value: documents[i].metadata,
+    #         }
+    #         insert_dict_list.append(insert_dict)
+    #     # Total insert count
+    #     total_count = len(insert_dict_list)
+    #     pks: list[str] = []
+    #
+    #     for i in range(0, total_count, 1000):
+    #         # Insert into the collection.
+    #         batch_insert_list = insert_dict_list[i : i + 1000]
+    #         try:
+    #             ids = self._client.insert(collection_name=self._collection_name, data=batch_insert_list)
+    #             pks.extend(ids)
+    #         except MilvusException as e:
+    #             logger.exception("Failed to insert batch starting at entity: %s/%s", i, total_count)
+    #             raise e
+    #     return pks
+
+    # yhj修改for deep-search 20260202
+    def add_texts(self, documents: list[Document], embeddings: list[list[float]], reference: str = None, **kwargs):
         """
         Add texts and their embeddings to the collection.
         """
@@ -116,6 +156,8 @@ class MilvusVector(BaseVector):
                 Field.CONTENT_KEY.value: documents[i].page_content,
                 Field.VECTOR.value: embeddings[i],
                 Field.METADATA_KEY.value: documents[i].metadata,
+                "reference": reference,
+                "text": documents[i].page_content,
             }
             insert_dict_list.append(insert_dict)
         # Total insert count
@@ -124,7 +166,7 @@ class MilvusVector(BaseVector):
 
         for i in range(0, total_count, 1000):
             # Insert into the collection.
-            batch_insert_list = insert_dict_list[i : i + 1000]
+            batch_insert_list = insert_dict_list[i: i + 1000]
             try:
                 ids = self._client.insert(collection_name=self._collection_name, data=batch_insert_list)
                 pks.extend(ids)
@@ -290,6 +332,10 @@ class MilvusVector(BaseVector):
                 fields.append(FieldSchema(Field.PRIMARY_KEY.value, DataType.INT64, is_primary=True, auto_id=True))
                 # Create the vector field, supports binary or float vectors
                 fields.append(FieldSchema(Field.VECTOR.value, infer_dtype_bydata(embeddings[0]), dim=dim))
+                # yhj修改for deep-search 20260202
+                fields.append(FieldSchema("reference", DataType.VARCHAR, max_length=65_535, nullable=True))
+                fields.append(FieldSchema("text", DataType.VARCHAR, max_length=65_535, nullable=True))
+
                 # Create Sparse Vector Index for the collection
                 if self._hybrid_search_enabled:
                     fields.append(FieldSchema(Field.SPARSE_VECTOR.value, DataType.SPARSE_FLOAT_VECTOR))
@@ -329,6 +375,86 @@ class MilvusVector(BaseVector):
                     consistency_level=self._consistency_level,
                 )
             redis_client.set(collection_exist_cache_key, 1, ex=3600)
+
+    # # yhj修改for deep-search 20260202
+    # def create_collection(
+    #         self, embeddings: list, metadatas: Optional[list[dict]] = None, index_params: Optional[dict] = None
+    # ):
+    #     """
+    #     Create a new collection in Milvus with the specified schema and index parameters.
+    #     """
+    #     lock_name = "vector_indexing_lock_{}".format(self._collection_name)
+    #     with redis_client.lock(lock_name, timeout=20):
+    #         collection_exist_cache_key = "vector_indexing_{}".format(self._collection_name)
+    #         if redis_client.get(collection_exist_cache_key):
+    #             return
+    #         # Grab the existing collection if it exists
+    #         if not self._client.has_collection(self._collection_name):
+    #             from pymilvus import CollectionSchema, DataType, FieldSchema, Function, FunctionType  # type: ignore
+    #             from pymilvus.orm.types import infer_dtype_bydata  # type: ignore
+    #
+    #             # Determine embedding dim
+    #             dim = len(embeddings[0])
+    #             fields = []
+    #             if metadatas:
+    #                 fields.append(FieldSchema(Field.METADATA_KEY.value, DataType.JSON, max_length=65_535))
+    #
+    #             # Create the text field, enable_analyzer will be set True to support milvus automatically
+    #             # transfer text to sparse_vector, reference: https://milvus.io/docs/full-text-search.md
+    #             content_field_kwargs: dict[str, Any] = {
+    #                 "max_length": 65_535,
+    #                 "enable_analyzer": self._hybrid_search_enabled,
+    #             }
+    #             if (
+    #                     self._hybrid_search_enabled
+    #                     and self._client_config.analyzer_params is not None
+    #                     and self._client_config.analyzer_params.strip()
+    #             ):
+    #                 content_field_kwargs["analyzer_params"] = self._client_config.analyzer_params
+    #
+    #             fields.append(FieldSchema(Field.CONTENT_KEY.value, DataType.VARCHAR, **content_field_kwargs))
+    #             fields.append(FieldSchema("reference", DataType.VARCHAR, max_length=65_535, nullable=True))
+    #             fields.append(FieldSchema("text", DataType.VARCHAR, max_length=65_535, nullable=True))
+    #             # Create the primary key field
+    #             fields.append(FieldSchema(Field.PRIMARY_KEY.value, DataType.INT64, is_primary=True, auto_id=True))
+    #             # Create the vector field, supports binary or float vectors
+    #             fields.append(FieldSchema(Field.VECTOR.value, infer_dtype_bydata(embeddings[0]), dim=dim))
+    #             # Create Sparse Vector Index for the collection
+    #             if self._hybrid_search_enabled:
+    #                 fields.append(FieldSchema(Field.SPARSE_VECTOR.value, DataType.SPARSE_FLOAT_VECTOR))
+    #
+    #             schema = CollectionSchema(fields)
+    #
+    #             # Create custom function to support text to sparse vector by BM25
+    #             if self._hybrid_search_enabled:
+    #                 bm25_function = Function(
+    #                     name="text_bm25_emb",
+    #                     input_field_names=[Field.CONTENT_KEY.value],
+    #                     output_field_names=[Field.SPARSE_VECTOR.value],
+    #                     function_type=FunctionType.BM25,
+    #                 )
+    #                 schema.add_function(bm25_function)
+    #
+    #             self._load_collection_fields([f.name for f in schema.fields])
+    #
+    #             # Create Index params for the collection
+    #             index_params_obj = IndexParams()
+    #             index_params_obj.add_index(field_name=Field.VECTOR.value, **index_params)
+    #
+    #             # Create Sparse Vector Index for the collection
+    #             if self._hybrid_search_enabled:
+    #                 index_params_obj.add_index(
+    #                     field_name=Field.SPARSE_VECTOR.value, index_type="AUTOINDEX", metric_type="BM25"
+    #                 )
+    #
+    #             # Create the collection
+    #             self._client.create_collection(
+    #                 collection_name=self._collection_name,
+    #                 schema=schema,
+    #                 index_params=index_params_obj,
+    #                 consistency_level=self._consistency_level,
+    #             )
+    #         redis_client.set(collection_exist_cache_key, 1, ex=3600)
 
     def _init_client(self, config) -> MilvusClient:
         """

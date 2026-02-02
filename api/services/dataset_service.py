@@ -157,15 +157,15 @@ class DatasetService:
 
     @staticmethod
     def create_empty_dataset(
-        tenant_id: str,
-        name: str,
-        description: Optional[str],
-        indexing_technique: Optional[str],
-        account: Account,
-        permission: Optional[str] = None,
-        provider: str = "vendor",
-        external_knowledge_api_id: Optional[str] = None,
-        external_knowledge_id: Optional[str] = None,
+            tenant_id: str,
+            name: str,
+            description: Optional[str],
+            indexing_technique: Optional[str],
+            account: Account,
+            permission: Optional[str] = None,
+            provider: str = "vendor",
+            external_knowledge_api_id: Optional[str] = None,
+            external_knowledge_id: Optional[str] = None,
     ):
         # check if dataset name already exists
         if Dataset.query.filter_by(name=name, tenant_id=tenant_id).first():
@@ -270,8 +270,8 @@ class DatasetService:
                 raise ValueError("External knowledge api id is required.")
             external_knowledge_binding = ExternalKnowledgeBindings.query.filter_by(dataset_id=dataset_id).first()
             if (
-                external_knowledge_binding.external_knowledge_id != external_knowledge_id
-                or external_knowledge_binding.external_knowledge_api_id != external_knowledge_api_id
+                    external_knowledge_binding.external_knowledge_id != external_knowledge_id
+                    or external_knowledge_binding.external_knowledge_api_id != external_knowledge_api_id
             ):
                 external_knowledge_binding.external_knowledge_id = external_knowledge_id
                 external_knowledge_binding.external_knowledge_api_id = external_knowledge_api_id
@@ -317,8 +317,8 @@ class DatasetService:
                         raise ValueError(ex.description)
             else:
                 if (
-                    data["embedding_model_provider"] != dataset.embedding_model_provider
-                    or data["embedding_model"] != dataset.embedding_model
+                        data["embedding_model_provider"] != dataset.embedding_model_provider
+                        or data["embedding_model"] != dataset.embedding_model
                 ):
                     action = "update"
                     try:
@@ -390,9 +390,9 @@ class DatasetService:
             if dataset.permission == "partial_members":
                 user_permission = DatasetPermission.query.filter_by(dataset_id=dataset.id, account_id=user.id).first()
                 if (
-                    not user_permission
-                    and dataset.tenant_id != user.current_tenant_id
-                    and dataset.created_by != user.id
+                        not user_permission
+                        and dataset.tenant_id != user.current_tenant_id
+                        and dataset.created_by != user.id
                 ):
                     logging.debug(f"User {user.id} does not have permission to access dataset {dataset.id}")
                     raise NoPermissionError("You do not have permission to access this dataset.")
@@ -412,7 +412,7 @@ class DatasetService:
 
             elif dataset.permission == DatasetPermissionEnum.PARTIAL_TEAM:
                 if not any(
-                    dp.dataset_id == dataset.id for dp in DatasetPermission.query.filter_by(account_id=user.id).all()
+                        dp.dataset_id == dataset.id for dp in DatasetPermission.query.filter_by(account_id=user.id).all()
                 ):
                     raise NoPermissionError("You do not have permission to access this dataset.")
 
@@ -753,11 +753,13 @@ class DocumentService:
 
     @staticmethod
     def save_document_with_dataset_id(
-        dataset: Dataset,
-        knowledge_config: KnowledgeConfig,
-        account: Account | Any,
-        dataset_process_rule: Optional[DatasetProcessRule] = None,
-        created_from: str = "web",
+            dataset: Dataset,
+            knowledge_config: KnowledgeConfig,
+            account: Account | Any,
+            dataset_process_rule: Optional[DatasetProcessRule] = None,
+            created_from: str = "web",
+            # yhj修改for deep-search 20260202
+            reference: str = None
     ):
         # check document limit
         features = FeatureService.get_features(current_user.current_tenant_id)
@@ -1022,7 +1024,9 @@ class DocumentService:
 
                 # trigger async task
                 if document_ids:
-                    document_indexing_task.delay(dataset.id, document_ids)
+                    # document_indexing_task.delay(dataset.id, document_ids)
+                    # yhj修改for deep-search 20260202
+                    document_indexing_task.delay(dataset.id, document_ids, reference)
                 if duplicate_document_ids:
                     duplicate_document_indexing_task.delay(dataset.id, duplicate_document_ids)
 
@@ -1038,18 +1042,18 @@ class DocumentService:
 
     @staticmethod
     def build_document(
-        dataset: Dataset,
-        process_rule_id: str,
-        data_source_type: str,
-        document_form: str,
-        document_language: str,
-        data_source_info: dict,
-        created_from: str,
-        position: int,
-        account: Account,
-        name: str,
-        batch: str,
-        metadata: Optional[MetaDataConfig] = None,
+            dataset: Dataset,
+            process_rule_id: str,
+            data_source_type: str,
+            document_form: str,
+            document_language: str,
+            data_source_info: dict,
+            created_from: str,
+            position: int,
+            account: Account,
+            name: str,
+            batch: str,
+            metadata: Optional[MetaDataConfig] = None,
     ):
         document = Document(
             tenant_id=dataset.tenant_id,
@@ -1082,11 +1086,11 @@ class DocumentService:
 
     @staticmethod
     def update_document_with_dataset_id(
-        dataset: Dataset,
-        document_data: KnowledgeConfig,
-        account: Account,
-        dataset_process_rule: Optional[DatasetProcessRule] = None,
-        created_from: str = "web",
+            dataset: Dataset,
+            document_data: KnowledgeConfig,
+            account: Account,
+            dataset_process_rule: Optional[DatasetProcessRule] = None,
+            created_from: str = "web",
     ):
         DatasetService.check_dataset_model_setting(dataset)
         document = DocumentService.get_document(dataset.id, document_data.original_document_id)
@@ -1349,8 +1353,8 @@ class DocumentService:
                 raise ValueError("Process rule segmentation separator is invalid")
 
             if not (
-                knowledge_config.process_rule.mode == "hierarchical"
-                and knowledge_config.process_rule.rules.parent_mode == "full-doc"
+                    knowledge_config.process_rule.mode == "hierarchical"
+                    and knowledge_config.process_rule.rules.parent_mode == "full-doc"
             ):
                 if not knowledge_config.process_rule.rules.segmentation.max_tokens:
                     raise ValueError("Process rule segmentation max_tokens is required")
@@ -1388,8 +1392,8 @@ class DocumentService:
                 raise ValueError("Process rule rules is invalid")
 
             if (
-                "pre_processing_rules" not in args["process_rule"]["rules"]
-                or args["process_rule"]["rules"]["pre_processing_rules"] is None
+                    "pre_processing_rules" not in args["process_rule"]["rules"]
+                    or args["process_rule"]["rules"]["pre_processing_rules"] is None
             ):
                 raise ValueError("Process rule pre_processing_rules is required")
 
@@ -1415,8 +1419,8 @@ class DocumentService:
             args["process_rule"]["rules"]["pre_processing_rules"] = list(unique_pre_processing_rule_dicts.values())
 
             if (
-                "segmentation" not in args["process_rule"]["rules"]
-                or args["process_rule"]["rules"]["segmentation"] is None
+                    "segmentation" not in args["process_rule"]["rules"]
+                    or args["process_rule"]["rules"]["segmentation"] is None
             ):
                 raise ValueError("Process rule segmentation is required")
 
@@ -1424,8 +1428,8 @@ class DocumentService:
                 raise ValueError("Process rule segmentation is invalid")
 
             if (
-                "separator" not in args["process_rule"]["rules"]["segmentation"]
-                or not args["process_rule"]["rules"]["segmentation"]["separator"]
+                    "separator" not in args["process_rule"]["rules"]["segmentation"]
+                    or not args["process_rule"]["rules"]["segmentation"]["separator"]
             ):
                 raise ValueError("Process rule segmentation separator is required")
 
@@ -1433,8 +1437,8 @@ class DocumentService:
                 raise ValueError("Process rule segmentation separator is invalid")
 
             if (
-                "max_tokens" not in args["process_rule"]["rules"]["segmentation"]
-                or not args["process_rule"]["rules"]["segmentation"]["max_tokens"]
+                    "max_tokens" not in args["process_rule"]["rules"]["segmentation"]
+                    or not args["process_rule"]["rules"]["segmentation"]["max_tokens"]
             ):
                 raise ValueError("Process rule segmentation max_tokens is required")
 
@@ -1862,7 +1866,7 @@ class SegmentService:
 
     @classmethod
     def create_child_chunk(
-        cls, content: str, segment: DocumentSegment, document: Document, dataset: Dataset
+            cls, content: str, segment: DocumentSegment, document: Document, dataset: Dataset
     ) -> ChildChunk:
         lock_name = "add_child_lock_{}".format(segment.id)
         with redis_client.lock(lock_name, timeout=20):
@@ -1915,11 +1919,11 @@ class SegmentService:
 
     @classmethod
     def update_child_chunks(
-        cls,
-        child_chunks_update_args: list[ChildChunkUpdateArgs],
-        segment: DocumentSegment,
-        document: Document,
-        dataset: Dataset,
+            cls,
+            child_chunks_update_args: list[ChildChunkUpdateArgs],
+            segment: DocumentSegment,
+            document: Document,
+            dataset: Dataset,
     ) -> list[ChildChunk]:
         child_chunks = (
             db.session.query(ChildChunk)
@@ -1988,12 +1992,12 @@ class SegmentService:
 
     @classmethod
     def update_child_chunk(
-        cls,
-        content: str,
-        child_chunk: ChildChunk,
-        segment: DocumentSegment,
-        document: Document,
-        dataset: Dataset,
+            cls,
+            content: str,
+            child_chunk: ChildChunk,
+            segment: DocumentSegment,
+            document: Document,
+            dataset: Dataset,
     ) -> ChildChunk:
         try:
             child_chunk.content = content
@@ -2023,7 +2027,7 @@ class SegmentService:
 
     @classmethod
     def get_child_chunks(
-        cls, segment_id: str, document_id: str, dataset_id: str, page: int, limit: int, keyword: Optional[str] = None
+            cls, segment_id: str, document_id: str, dataset_id: str, page: int, limit: int, keyword: Optional[str] = None
     ):
         query = ChildChunk.query.filter_by(
             tenant_id=current_user.current_tenant_id,
@@ -2039,7 +2043,7 @@ class SegmentService:
 class DatasetCollectionBindingService:
     @classmethod
     def get_dataset_collection_binding(
-        cls, provider_name: str, model_name: str, collection_type: str = "dataset"
+            cls, provider_name: str, model_name: str, collection_type: str = "dataset"
     ) -> DatasetCollectionBinding:
         dataset_collection_binding = (
             db.session.query(DatasetCollectionBinding)
@@ -2065,7 +2069,7 @@ class DatasetCollectionBindingService:
 
     @classmethod
     def get_dataset_collection_binding_by_id_and_type(
-        cls, collection_binding_id: str, collection_type: str = "dataset"
+            cls, collection_binding_id: str, collection_type: str = "dataset"
     ) -> DatasetCollectionBinding:
         dataset_collection_binding = (
             db.session.query(DatasetCollectionBinding)

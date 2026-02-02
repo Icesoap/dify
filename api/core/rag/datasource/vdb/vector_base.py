@@ -14,8 +14,13 @@ class BaseVector(ABC):
     def get_type(self) -> str:
         raise NotImplementedError
 
+    # @abstractmethod
+    # def create(self, texts: list[Document], embeddings: list[list[float]], **kwargs):
+    #     raise NotImplementedError
+
+    # yhj修改for deep-search 20260202
     @abstractmethod
-    def create(self, texts: list[Document], embeddings: list[list[float]], **kwargs):
+    def create(self, texts: list[Document], embeddings: list[list[float]], reference: str = None, **kwargs):
         raise NotImplementedError
 
     @abstractmethod

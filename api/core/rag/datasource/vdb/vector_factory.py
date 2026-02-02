@@ -151,10 +151,16 @@ class Vector:
             case _:
                 raise ValueError(f"Vector store {vector_type} is not supported.")
 
-    def create(self, texts: Optional[list] = None, **kwargs):
+    # def create(self, texts: Optional[list] = None, **kwargs):
+    #     if texts:
+    #         embeddings = self._embeddings.embed_documents([document.page_content for document in texts])
+    #         self._vector_processor.create(texts=texts, embeddings=embeddings, **kwargs)
+
+    # yhj修改for deep-search 20260202
+    def create(self, texts: Optional[list] = None, reference: str = None, **kwargs):
         if texts:
             embeddings = self._embeddings.embed_documents([document.page_content for document in texts])
-            self._vector_processor.create(texts=texts, embeddings=embeddings, **kwargs)
+            self._vector_processor.create(texts=texts, embeddings=embeddings, reference=reference, **kwargs)
 
     def add_texts(self, documents: list[Document], **kwargs):
         if kwargs.get("duplicate_check", False):

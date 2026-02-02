@@ -46,7 +46,9 @@ class IndexingRunner:
         self.storage = storage
         self.model_manager = ModelManager()
 
-    def run(self, dataset_documents: list[DatasetDocument]):
+    # def run(self, dataset_documents: list[DatasetDocument]):
+    # yhj修改for deep-search 20260202
+    def run(self, dataset_documents: list[DatasetDocument], reference: str = None):
         """Run the indexing process."""
         for dataset_document in dataset_documents:
             try:
@@ -82,6 +84,8 @@ class IndexingRunner:
                     dataset=dataset,
                     dataset_document=dataset_document,
                     documents=documents,
+                    # yhj修改for deep-search 20260202
+                    reference= reference,
                 )
             except DocumentIsPausedError:
                 raise DocumentIsPausedError("Document paused, document id: {}".format(dataset_document.id))
@@ -232,14 +236,14 @@ class IndexingRunner:
             db.session.commit()
 
     def indexing_estimate(
-        self,
-        tenant_id: str,
-        extract_settings: list[ExtractSetting],
-        tmp_processing_rule: dict,
-        doc_form: Optional[str] = None,
-        doc_language: str = "English",
-        dataset_id: Optional[str] = None,
-        indexing_technique: str = "economy",
+            self,
+            tenant_id: str,
+            extract_settings: list[ExtractSetting],
+            tmp_processing_rule: dict,
+            doc_form: Optional[str] = None,
+            doc_language: str = "English",
+            dataset_id: Optional[str] = None,
+            indexing_technique: str = "economy",
     ) -> IndexingEstimate:
         """
         Estimate the indexing for the document.
@@ -328,7 +332,7 @@ class IndexingRunner:
         return IndexingEstimate(total_segments=total_segments, preview=preview_texts)  # type: ignore
 
     def _extract(
-        self, index_processor: BaseIndexProcessor, dataset_document: DatasetDocument, process_rule: dict
+            self, index_processor: BaseIndexProcessor, dataset_document: DatasetDocument, process_rule: dict
     ) -> list[Document]:
         # load file
         if dataset_document.data_source_type not in {"upload_file", "notion_import", "website_crawl"}:
@@ -351,9 +355,9 @@ class IndexingRunner:
                 text_docs = index_processor.extract(extract_setting, process_rule_mode=process_rule["mode"])
         elif dataset_document.data_source_type == "notion_import":
             if (
-                not data_source_info
-                or "notion_workspace_id" not in data_source_info
-                or "notion_page_id" not in data_source_info
+                    not data_source_info
+                    or "notion_workspace_id" not in data_source_info
+                    or "notion_page_id" not in data_source_info
             ):
                 raise ValueError("no notion import info found")
             extract_setting = ExtractSetting(
@@ -370,10 +374,10 @@ class IndexingRunner:
             text_docs = index_processor.extract(extract_setting, process_rule_mode=process_rule["mode"])
         elif dataset_document.data_source_type == "website_crawl":
             if (
-                not data_source_info
-                or "provider" not in data_source_info
-                or "url" not in data_source_info
-                or "job_id" not in data_source_info
+                    not data_source_info
+                    or "provider" not in data_source_info
+                    or "url" not in data_source_info
+                    or "job_id" not in data_source_info
             ):
                 raise ValueError("no website import info found")
             extract_setting = ExtractSetting(
@@ -419,11 +423,11 @@ class IndexingRunner:
 
     @staticmethod
     def _get_splitter(
-        processing_rule_mode: str,
-        max_tokens: int,
-        chunk_overlap: int,
-        separator: str,
-        embedding_model_instance: Optional[ModelInstance],
+            processing_rule_mode: str,
+            max_tokens: int,
+            chunk_overlap: int,
+            separator: str,
+            embedding_model_instance: Optional[ModelInstance],
     ) -> TextSplitter:
         """
         Get the NodeParser object according to the processing rule.
@@ -457,7 +461,7 @@ class IndexingRunner:
         return character_splitter  # type: ignore
 
     def _split_to_documents_for_estimate(
-        self, text_docs: list[Document], splitter: TextSplitter, processing_rule: DatasetProcessRule
+            self, text_docs: list[Document], splitter: TextSplitter, processing_rule: DatasetProcessRule
     ) -> list[Document]:
         """
         Split the text documents into nodes.
@@ -508,11 +512,13 @@ class IndexingRunner:
         return [QAPreviewDetail(question=q, answer=re.sub(r"\n\s*", "\n", a.strip())) for q, a in matches if q and a]
 
     def _load(
-        self,
-        index_processor: BaseIndexProcessor,
-        dataset: Dataset,
-        dataset_document: DatasetDocument,
-        documents: list[Document],
+            self,
+            index_processor: BaseIndexProcessor,
+            dataset: Dataset,
+            dataset_document: DatasetDocument,
+            documents: list[Document],
+            # yhj修改for deep-search 20260202
+            reference: str = None,
     ) -> None:
         """
         insert index and update document/segment status to completed
@@ -563,6 +569,8 @@ class IndexingRunner:
                             dataset,
                             dataset_document,
                             embedding_model_instance,
+                            # yhj修改for deep-search 20260202
+                            reference
                         )
                     )
 
@@ -583,6 +591,8 @@ class IndexingRunner:
                 DatasetDocument.error: None,
             },
         )
+
+
 
     @staticmethod
     def _process_keyword_index(flask_app, dataset_id, document_id, documents):
@@ -610,7 +620,9 @@ class IndexingRunner:
                 db.session.commit()
 
     def _process_chunk(
-        self, flask_app, index_processor, chunk_documents, dataset, dataset_document, embedding_model_instance
+            # self, flask_app, index_processor, chunk_documents, dataset, dataset_document, embedding_model_instance
+            # yhj修改for deep-search 20260202
+            self, flask_app, index_processor, chunk_documents, dataset, dataset_document, embedding_model_instance, reference: str = None
     ):
         with flask_app.app_context():
             # check document is paused
@@ -624,7 +636,9 @@ class IndexingRunner:
                 )
 
             # load index
-            index_processor.load(dataset, chunk_documents, with_keywords=False)
+            # index_processor.load(dataset, chunk_documents, with_keywords=False)
+            # yhj修改for deep-search 20260202
+            index_processor.load(dataset, chunk_documents, with_keywords=False, reference=reference)
 
             document_ids = [document.metadata["doc_id"] for document in chunk_documents]
             db.session.query(DocumentSegment).filter(
@@ -653,7 +667,7 @@ class IndexingRunner:
 
     @staticmethod
     def _update_document_index_status(
-        document_id: str, after_indexing_status: str, extra_update_params: Optional[dict] = None
+            document_id: str, after_indexing_status: str, extra_update_params: Optional[dict] = None
     ) -> None:
         """
         Update the document indexing status.
@@ -682,12 +696,12 @@ class IndexingRunner:
         db.session.commit()
 
     def _transform(
-        self,
-        index_processor: BaseIndexProcessor,
-        dataset: Dataset,
-        text_docs: list[Document],
-        doc_language: str,
-        process_rule: dict,
+            self,
+            index_processor: BaseIndexProcessor,
+            dataset: Dataset,
+            text_docs: list[Document],
+            doc_language: str,
+            process_rule: dict,
     ) -> list[Document]:
         # get embedding model instance
         embedding_model_instance = None

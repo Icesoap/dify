@@ -53,6 +53,7 @@ class DocumentAddByTextApi(DatasetApiResource):
         parser.add_argument("retrieval_model", type=dict, required=False, nullable=False, location="json")
         parser.add_argument("doc_type", type=str, required=False, nullable=True, location="json")
         parser.add_argument("doc_metadata", type=dict, required=False, nullable=True, location="json")
+        parser.add_argument("reference", type=str, required=False, nullable=True, location="json")
 
         args = parser.parse_args()
         dataset_id = str(dataset_id)
@@ -109,13 +110,16 @@ class DocumentAddByTextApi(DatasetApiResource):
                 account=current_user,
                 dataset_process_rule=dataset.latest_process_rule if "process_rule" not in args else None,
                 created_from="api",
+                reference=args.get("reference"),
             )
         except ProviderTokenNotInitError as ex:
             raise ProviderNotInitializeError(ex.description)
         document = documents[0]
 
         documents_and_batch_fields = {"document": marshal(document, document_fields), "batch": batch}
-        return documents_and_batch_fields, 200
+        return documents_and_batch_fields, 200\
+
+
 
 
 class DocumentUpdateByTextApi(DatasetApiResource):
